@@ -1,0 +1,12 @@
+## RUNNING
+<!-- python manage.py runserver -->
+
+
+### Rebuild DB:
+rm db.sqlite3
+rm -rf shop/migrations
+mkdir shop/migrations
+touch shop/migrations/__init__.py
+python manage.py makemigrations shop
+python manage.py migrate
+python manage.py createsuperuser

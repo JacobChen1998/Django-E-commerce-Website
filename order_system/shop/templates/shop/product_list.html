@@ -1,0 +1,122 @@
+{% load bootstrap4 %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product List</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        .product {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px;
+            text-align: center;
+        }
+        .product img {
+            width: {{ product_img_size.0 }}px;
+            height: {{ product_img_size.1 }}px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand" href="#">Product List</a>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-primary" href="{% url 'cart_detail' %}">View Cart</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="row">
+            {% for product in products %}
+                <div class="col-md-{{ column_width }} product">
+                    <img src="{{ product.image }}" alt="{{ product.name }}">
+                    <h2>{{ product.name }}</h2>
+                    <p>{{ product.description }}</p>
+                    <p>Price: ${{ product.price }}</p>
+                    <p>Stock: {{ product.quantity }}</p> <!-- 显示商品剩余数量 -->
+                    <button type="button" class="btn btn-primary add-to-cart-btn" data-id="{{ product.id }}">Add to Cart</button>
+                </div>
+            {% endfor %}
+        </div>
+        <nav>
+            <ul class="pagination">
+                {% if products.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ products.previous_page_number }}">Previous</a></li>
+                {% endif %}
+                <li class="page-item disabled"><span class="page-link">{{ products.number }}</span></li>
+                {% if products.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ products.next_page_number }}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Add to Cart Modal -->
+    <div class="modal fade" id="addToCartModal" tabindex="-1" role="dialog" aria-labelledby="addToCartModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addToCartModalLabel">Select Quantity</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-to-cart-form" method="post" action="">
+                        {% csrf_token %}
+                        <input type="hidden" name="product_id" id="modal-product-id">
+                        <div class="form-group">
+                            <label for="quantity">Quantity</label>
+                            <input type="number" class="form-control" name="quantity" id="modal-quantity" value="1" min="1">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add to Cart</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var productId;
+            $('.add-to-cart-btn').on('click', function() {
+                productId = $(this).data('id');
+                $('#modal-product-id').val(productId);
+                $('#add-to-cart-form').attr('action', '{% url "cart_add" 0 %}'.replace('0', productId));
+                $('#addToCartModal').modal('show');
+            });
+
+            $('#add-to-cart-form').on('submit', function(event) {
+                event.preventDefault();  // 防止表单提交导致页面刷新
+                $.ajax({
+                    type: 'POST',
+                    url: $(this).attr('action'),
+                    data: $(this).serialize(),
+                    success: function() {
+                        $('#addToCartModal').modal('hide');
+                        alert('Product added to cart');
+                    },
+                    error: function(xhr, status, error) {
+                        alert('Error adding product to cart: ' + error);
+                    }
+                });
+            });
+
+        });
+    </script>
+</body>
+</html>
