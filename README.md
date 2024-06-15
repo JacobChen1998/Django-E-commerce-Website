@@ -33,4 +33,5 @@ python manage.py runserver
 
 ## Build your own order system
 * [TODO] add tutorial
+* [TODO] add requirements.txt
 
